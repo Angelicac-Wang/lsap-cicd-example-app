@@ -141,14 +141,14 @@ pipeline {
                 }
             }
         }
-        success {
-            script {
-                // 可選：成功時也發送通知
-                // withCredentials([string(credentialsId: SLACK_WEBHOOK_CREDENTIALS, variable: 'SLACK_WEBHOOK_URL')]) {
-                //     sendSlackNotification('SUCCESS', env.SLACK_WEBHOOK_URL)
-                // }
-            }
-        }
+        // success {
+        //     script {
+        //         // 可選：成功時也發送通知
+        //         // withCredentials([string(credentialsId: SLACK_WEBHOOK_CREDENTIALS, variable: 'SLACK_WEBHOOK_URL')]) {
+        //         //     sendSlackNotification('SUCCESS', env.SLACK_WEBHOOK_URL)
+        //         // }
+        //     }
+        // }
     }
 }
 
