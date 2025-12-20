@@ -7,6 +7,7 @@ pipeline {
         SLACK_WEBHOOK_CREDENTIALS = 'slack-webhook-credentials'  // Jenkins 中配置的 Slack Webhook URL 憑證 ID
         YOUR_NAME = 'Zhiying Wang'  // 請替換為你的姓名
         YOUR_STUDENT_ID = 'B12705031'  // 請替換為你的學號
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  // 確保能找到 npm 和 node
     }
     
     stages {
@@ -15,7 +16,19 @@ pipeline {
             steps {
                 script {
                     echo "Installing npm dependencies..."
-                    sh 'npm install'
+                    // 確保能找到 npm（檢查多個可能的路徑）
+                    sh '''
+                        if command -v npm &> /dev/null; then
+                            npm install
+                        elif [ -f /usr/local/bin/npm ]; then
+                            /usr/local/bin/npm install
+                        elif [ -f /opt/homebrew/bin/npm ]; then
+                            /opt/homebrew/bin/npm install
+                        else
+                            echo "Error: npm not found. Please install Node.js."
+                            exit 1
+                        fi
+                    '''
                 }
             }
         }
@@ -25,7 +38,18 @@ pipeline {
             steps {
                 script {
                     echo "Running ESLint on branch: ${env.BRANCH_NAME}"
-                    sh 'npm run lint'
+                    sh '''
+                        if command -v npm &> /dev/null; then
+                            npm run lint
+                        elif [ -f /usr/local/bin/npm ]; then
+                            /usr/local/bin/npm run lint
+                        elif [ -f /opt/homebrew/bin/npm ]; then
+                            /opt/homebrew/bin/npm run lint
+                        else
+                            echo "Error: npm not found."
+                            exit 1
+                        fi
+                    '''
                 }
             }
             post {
