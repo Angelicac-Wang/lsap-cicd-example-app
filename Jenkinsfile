@@ -78,11 +78,30 @@ pipeline {
                         // Staging Environment (dev branch)
                         echo "Building and deploying to Staging..."
                         
+                        // 0. Read version from package.json (Bonus: Semantic Versioning)
+                        def appVersion = sh(
+                            script: '''
+                                if command -v npm &> /dev/null; then
+                                    npm pkg get version | tr -d '"'
+                                elif [ -f /usr/local/bin/npm ]; then
+                                    /usr/local/bin/npm pkg get version | tr -d '"'
+                                elif [ -f /opt/homebrew/bin/npm ]; then
+                                    /opt/homebrew/bin/npm pkg get version | tr -d '"'
+                                else
+                                    node -p "require('./package.json').version"
+                                fi
+                            ''',
+                            returnStdout: true
+                        ).trim()
+                        echo "App version from package.json: ${appVersion}"
+                        
                         // 1. Build Docker image
                         def imageTag = "dev-${env.BUILD_NUMBER}"
+                        def versionTag = "v${appVersion}"
                         sh """
                             docker build -t ${DOCKER_HUB_USER}/myapp:${imageTag} .
                             docker tag ${DOCKER_HUB_USER}/myapp:${imageTag} ${DOCKER_HUB_USER}/myapp:latest
+                            docker tag ${DOCKER_HUB_USER}/myapp:${imageTag} ${DOCKER_HUB_USER}/myapp:${versionTag}
                         """
                         
                         // 2. Push to Docker Hub
@@ -91,6 +110,7 @@ pipeline {
                                 echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                                 docker push ${DOCKER_HUB_USER}/myapp:${imageTag}
                                 docker push ${DOCKER_HUB_USER}/myapp:latest
+                                docker push ${DOCKER_HUB_USER}/myapp:${versionTag}
                             """
                         }
                         
